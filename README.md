@@ -52,8 +52,6 @@ uv sync --extra dev
 uv add asyncpg "sqlalchemy[asyncio]"
 
 3. 构建镜像并后台启动全部服务
-# 赋予安全权限
-chmod 600 .env
 # 启动
 docker compose up -d --build
 # 测试
