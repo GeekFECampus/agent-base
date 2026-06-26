@@ -14,7 +14,6 @@ uv.lock
 logs/
 
 # 环境密钥
-.env
 .env.local
 .env.dev
 
@@ -31,8 +30,8 @@ logs/
 .DS_Store
 Thumbs.db
 
-.test_day1.py
-.test_day3.py
-.test_day4.py
-.test_day5.py
-.test_day6.py
+test_day1.py
+test_day3.py
+test_day4.py
+test_day5.py
+test_day6.py
