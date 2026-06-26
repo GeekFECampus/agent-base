@@ -52,11 +52,12 @@ uv sync --extra dev
 uv add asyncpg "sqlalchemy[asyncio]"
 
 3. 构建镜像并后台启动全部服务
-echo -e "DB_USER=admin\nDB_PASSWORD=123456\nDB_NAME=agent_db" > .env
 # 赋予安全权限
 chmod 600 .env
 # 启动
 docker compose up -d --build
+# 测试
+uv run python test_day6.py
 
 
 
