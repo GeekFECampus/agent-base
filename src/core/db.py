@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import declarative_base
 from src.core.settings import settings
 from src.core.logger import log
+from sqlalchemy import text
 
 # --------------------------知识点分割线---------------------------
 # 1. asyncpg 异步驱动：连接串前缀 postgresql+asyncpg://
@@ -51,6 +52,9 @@ async def get_db_session() -> AsyncSession:
 # 全局初始化：创建所有数据表（服务启动执行）
 async def init_db_tables():
     async with async_engine.begin() as conn:
+        # 开启向量拓展
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         # 自动扫描所有继承Base的模型，不存在则创建表
         await conn.run_sync(Base.metadata.create_all)
     log.info("数据库数据表初始化完成")
+

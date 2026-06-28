@@ -9,6 +9,7 @@ src/agent_base.egg-info/top_level.txt
 src/api/chat_router.py
 src/api/deps.py
 src/api/history_router.py
+src/api/rag_router.py
 src/api/schema.py
 src/core/base.py
 src/core/db.py
@@ -23,3 +24,7 @@ src/utils/decorators.py
 src/utils/memory_queue.py
 src/utils/prompt_manager.py
 src/utils/token_utils.py
+src/utils/rag/chunker.py
+src/utils/rag/embedder.py
+src/utils/rag/rag_chain.py
+src/utils/rag/retriever.py

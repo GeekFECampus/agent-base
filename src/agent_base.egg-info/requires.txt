@@ -9,6 +9,9 @@ httpx>=0.25.2
 python-dotenv>=1.0.0
 tiktoken>=0.5.2
 asyncpg>=0.31.0
+pgvector>=0.3.0
+sentence-transformers>=3.0.0
+pypdf2>=3.0.0
 
 [dev]
 ruff>=0.1.6

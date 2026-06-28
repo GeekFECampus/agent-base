@@ -1,7 +1,11 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-from src.core.db import Base
+from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.sql import func
+from pgvector.sqlalchemy import Vector
+# from src.core.db import Base
+
+Base = declarative_base()
 
 # --------------------------知识点分割线---------------------------
 # 1. 外键关联：ChatMessage -> ChatSession 一对多，一个会话多条消息
@@ -37,3 +41,23 @@ class ChatMessage(Base):
     create_time = Column(DateTime, default=datetime.utcnow)
 
     session = relationship("ChatSession", back_populates="messages")
+
+# 原有 User / ChatSession / ChatMessage 省略
+
+# 知识库文档库
+class KnowledgeBase(Base):
+    __tablename__ = "knowledge_base"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False, comment="知识库名称")
+    desc = Column(Text, comment="知识库描述")
+    created_at = Column(DateTime, server_default=func.now())
+
+# 文档切片向量表
+class DocumentChunk(Base):
+    __tablename__ = "document_chunk"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    kb_id = Column(Integer, ForeignKey("knowledge_base.id"), nullable=False)
+    content = Column(Text, nullable=False, comment="文档切片文本")
+    embedding = Column(Vector(384), comment="文本向量，维度384（all-MiniLM-L6-v2）")
+    source_name = Column(String(255), comment="原文件名称")
+    created_at = Column(DateTime, server_default=func.now())

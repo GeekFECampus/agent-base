@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.models import User, ChatSession, ChatMessage
 from src.api.schema import ChatHistoryItem
 from src.core.logger import log
+from pgvector.sqlalchemy import Vector
+from src.db.models import KnowledgeBase, DocumentChunk
 
 # ===================== User 用户操作 =====================
 async def get_user_by_token(db: AsyncSession, token: str) -> Optional[User]:
@@ -47,3 +49,68 @@ async def get_session_history(db: AsyncSession, session_id: int) -> List[ChatHis
     msg_list = result.scalars().all()
     history = [ChatHistoryItem(role=m.role, content=m.content) for m in msg_list]
     return history
+
+# ========== 知识库操作 ==========
+async def create_kb(db: AsyncSession, name: str, desc: str = "") -> KnowledgeBase:
+    kb = KnowledgeBase(name=name, desc=desc)
+    db.add(kb)
+    await db.commit()
+    await db.refresh(kb)
+    return kb
+
+async def list_all_kb(db: AsyncSession) -> List[KnowledgeBase]:
+    res = await db.execute(select(KnowledgeBase).order_by(KnowledgeBase.id))
+    return res.scalars().all()
+
+async def get_kb_by_id(db: AsyncSession, kb_id: int) -> Optional[KnowledgeBase]:
+    res = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == kb_id))
+    return res.scalar_one_or_none()
+
+# ========== 文档切片向量入库 ==========
+async def insert_document_chunk(
+    db: AsyncSession,
+    kb_id: int,
+    content: str,
+    embedding: Vector,
+    source_name: str
+) -> DocumentChunk:
+    chunk = DocumentChunk(
+        kb_id=kb_id,
+        content=content,
+        embedding=embedding,
+        source_name=source_name
+    )
+    db.add(chunk)
+    await db.commit()
+    await db.refresh(chunk)
+    return chunk
+
+# 批量插入切片
+async def batch_insert_chunks(db: AsyncSession, chunk_list: List[dict]):
+    objs = [
+        DocumentChunk(
+            kb_id=item["kb_id"],
+            content=item["content"],
+            embedding=item["embedding"],
+            source_name=item["source_name"]
+        )
+        for item in chunk_list
+    ]
+    db.add_all(objs)
+    await db.commit()
+
+# ========== 向量相似度检索 ==========
+async def search_similar_chunk(
+    db: AsyncSession,
+    kb_id: int,
+    query_embedding: List[float],
+    top_n: int = 3
+) -> List[DocumentChunk]:
+    stmt = (
+        select(DocumentChunk)
+        .where(DocumentChunk.kb_id == kb_id)
+        .order_by(DocumentChunk.embedding.cosine_distance(query_embedding))
+        .limit(top_n)
+    )
+    res = await db.execute(stmt)
+    return res.scalars().all()

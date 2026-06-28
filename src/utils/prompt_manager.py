@@ -20,33 +20,25 @@ class PromptManager:
         return cls._instance
 
     # ===================== 模板1：通用知识库问答模板（RAG专用） =====================
-    def build_rag_chat_prompt(self, user_query: str, context_docs: str, history: Optional[List[ChatHistoryItem]] = None) -> str:
-        """
-        企业知识库问答模板，自带幻觉抑制规则
-        :param user_query: 用户当前提问
-        :param context_docs: RAG检索到的参考文档片段
-        :param history: 多轮对话历史
-        :return: 完整拼接后的系统+用户Prompt
-        """
-        system_prompt = """
-你是企业内部知识库专属智能助手，回答严格遵循以下规则：
-1. 仅允许基于【参考文档】内容作答，文档无相关信息时，直接回复：「暂无相关知识库内容，无法解答该问题」，禁止编造任何信息；
-2. 回答条理清晰，分点阐述，引用文档关键原文；
-3. 不输出多余闲聊内容，不主动拓展文档以外的知识；
-4. 如果用户问题模糊，引导用户补充提问细节，不要猜测意图。
+    def build_rag_chat_prompt(self, user_query: str, context_docs: str, history: list) -> str:
+        template = """
+    你是企业专属知识库问答助手，回答必须严格遵守以下规则：
+    1. 只能依据下方【参考知识库资料】作答，绝对禁止编造不存在的内容；
+    2. 如果参考资料没有相关信息，直接回复：当前知识库未查询到相关内容，不要自行拓展知识；
+    3. 回答条理清晰，分点输出，不要输出多余闲聊内容；
+    4. 不要输出参考资料原文，用自己语言总结。
 
-【参考文档片段】
-{context_docs}
-"""
-        user_part = f"""
-历史对话：
-{self._format_history(history)}
+    【参考知识库资料】
+    {context_docs}
 
-用户当前问题：{user_query}
-"""
-        full_prompt = system_prompt.format(context_docs=context_docs) + user_part
-        self._check_prompt_token(full_prompt, threshold=3500)
-        return full_prompt
+    用户当前问题：{user_query}
+    历史对话记录：{history}
+    """
+        return template.format(
+            context_docs=context_docs,
+            user_query=user_query,
+            history=history
+        )
 
     # ===================== 模板2：CoT思维链复杂推理模板 =====================
     def build_cot_reason_prompt(self, user_query: str, history: Optional[List[ChatHistoryItem]] = None) -> str:
@@ -152,6 +144,5 @@ class PromptManager:
             log.warning(f"Prompt token 接近阈值！当前token：{token_num}，阈值：{threshold}，存在上下文超限风险")
         else:
             log.debug(f"Prompt token校验通过，总长度：{token_num}")
-
 # 全局单例导出，项目任意位置直接调用
 prompt_manager = PromptManager()

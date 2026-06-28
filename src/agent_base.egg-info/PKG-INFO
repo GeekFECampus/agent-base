@@ -14,6 +14,9 @@ Requires-Dist: httpx>=0.25.2
 Requires-Dist: python-dotenv>=1.0.0
 Requires-Dist: tiktoken>=0.5.2
 Requires-Dist: asyncpg>=0.31.0
+Requires-Dist: pgvector>=0.3.0
+Requires-Dist: sentence-transformers>=3.0.0
+Requires-Dist: pypdf2>=3.0.0
 Provides-Extra: dev
 Requires-Dist: ruff>=0.1.6; extra == "dev"
 Dynamic: license-file

@@ -21,6 +21,9 @@ dependencies = [
   # token计数
   "tiktoken>=0.5.2",
   "asyncpg>=0.31.0",
+  "pgvector>=0.3.0",
+  "sentence-transformers>=3.0.0",
+  "pypdf2>=3.0.0",
 ]
 
 [project.optional-dependencies]

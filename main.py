@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from src.core.logger import log
 from src.api.history_router import router as history_router
+from src.api.rag_router import router as kb_router
 from src.core.db import init_db_tables
 import time
 
@@ -19,6 +20,7 @@ app = FastAPI(title="Agent-Base 企业AI智能体底座", version="0.1.0")
 # 注册路由
 app.include_router(chat_routers)
 app.include_router(history_router)
+app.include_router(kb_router)
 
 # 全局请求中间件
 @app.middleware("http")
@@ -32,6 +34,7 @@ async def log_request_middleware(request: Request, call_next):
 # 服务启动钩子
 @app.on_event("startup")
 async def startup_event():
+    await init_db_tables()
     log.info("==== Agent-Base 服务启动完成 ====")
 
 # 服务关闭钩子
@@ -40,10 +43,10 @@ async def shutdown_event():
     log.info("==== Agent-Base 服务正在关闭 ====")
 
 # startup 钩子初始化数据表
-@app.on_event("startup")
-async def startup_event():
-    await init_db_tables()
-    log.info("==== Agent-Base 服务启动完成 ====")
+# @app.on_event("startup")
+# async def startup_event():
+#     await init_db_tables()
+#     log.info("==== Agent-Base 服务启动完成 ====")
 
 # 全局异常捕获
 @app.exception_handler(Exception)
